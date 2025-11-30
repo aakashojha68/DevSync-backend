@@ -94,18 +94,35 @@ socketServer.on("connection", (socket) => {
   socket.on("PING", (data) => {
     console.log("Received PING from client:", data);
 
-    const { roomId } = data;
+    const { roomId, name } = data;
+
+    // Disconnect cuurent sockets in the room
+    if (!roomId || !db[roomId]) {
+      // socket.disconnect(true);
+      socket.emit("INVALID_ROOM_ID", {
+        success: false,
+        msg: "Invalid Room ID.",
+      });
+      return;
+    }
+
+    const currentRoomData = db[roomId];
 
     // MOST IMP STEP: join socket with roomId.
     socket.join(roomId);
 
-    console.log("Emitting Pong request to client");
-
     // emit pong event for all the active user
     socketServer.to(roomId).emit("PONG", {
       message: "Hello from server",
-      data: db[roomId],
+      data: currentRoomData,
     });
+
+    if (currentRoomData?.users?.length > 1 && name) {
+      socket.to(roomId).emit("NEW_USER_JOINED", {
+        success: true,
+        msg: `${name} joined room.`,
+      });
+    }
   });
 
   socket.on("CODE_CHANGED", (req) => {
