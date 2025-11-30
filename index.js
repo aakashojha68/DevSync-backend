@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 5001;
 // creating socket io server on top of http server
 const socketServer = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST"],
   },
 });
