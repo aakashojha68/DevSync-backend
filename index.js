@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config();
 const cors = require("cors");
 const http = require("http");
 const crypto = require("crypto");
@@ -6,7 +7,7 @@ const { Server } = require("socket.io");
 
 const app = express();
 const httpServer = http.createServer(app); // creating http server
-const PORT = 5001;
+const PORT = process.env.PORT || 5001;
 
 // creating socket io server on top of http server
 const socketServer = new Server(httpServer, {
@@ -16,7 +17,11 @@ const socketServer = new Server(httpServer, {
   },
 });
 
-app.use(cors({ origin: "http://localhost:5173" }));
+const corsOptions = {
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Simple root route
