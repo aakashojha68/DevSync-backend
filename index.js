@@ -27,7 +27,7 @@ app.get("/", (req, res) => {
 const db = {
   "51c2da54-8694-4d57-a9f8-ae00de480092": {
     users: ["Aakash", "Shbuham"],
-    data: "Hello From Server",
+    data: "console.log('hello');",
   },
 };
 
@@ -118,6 +118,16 @@ socketServer.on("connection", (socket) => {
       message: "Hello from server",
       data: db[roomId],
     });
+  });
+
+  socket.on("END_SESSION", ({ roomId }) => {
+    console.log("END_SESSION ", roomId);
+    if (roomId) {
+      delete db[roomId];
+
+      // Disconnect all sockets in the room
+      socketServer.in(roomId).disconnectSockets(true);
+    }
   });
 
   socket.on("disconnect", () => {
