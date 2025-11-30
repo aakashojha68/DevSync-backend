@@ -14,6 +14,7 @@ const socketServer = new Server(httpServer, {
   cors: {
     origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -30,10 +31,10 @@ app.get("/", (req, res) => {
 });
 
 const db = {
-  "51c2da54-8694-4d57-a9f8-ae00de480092": {
-    users: ["Aakash", "Shbuham"],
-    data: "console.log('hello');",
-  },
+  // "51c2da54-8694-4d57-a9f8-ae00de480092": {
+  //   users: ["Aakash", "Shbuham"],
+  //   data: "console.log('hello');",
+  // },
 };
 
 app.post("/createRoom", (req, res) => {
@@ -63,7 +64,7 @@ app.post("/validateRoomId/:roomId", (req, res) => {
     const { roomId } = req.params;
     const { name } = req.body;
 
-    console.log("validateRoomId" + roomId);
+    // console.log("validateRoomId" + roomId);
 
     if (!db[roomId]) {
       throw new Error("Invalid room id !!");
@@ -71,11 +72,13 @@ app.post("/validateRoomId/:roomId", (req, res) => {
 
     const users = db[roomId].users;
 
-    users.push(name);
+    if (!users.includes(name)) {
+      users.push(name);
+    }
 
     db[roomId].users = users;
 
-    console.log(db[roomId]);
+    // console.log(db[roomId]);
 
     res.status(200).send({
       success: true,
@@ -92,12 +95,12 @@ app.post("/validateRoomId/:roomId", (req, res) => {
 });
 
 socketServer.on("connection", (socket) => {
-  console.log("Socket connected ", socket.id);
+  // console.log("Socket connected ", socket.id);
   //   console.log(socket);
 
   // receive a message from client
   socket.on("PING", (data) => {
-    console.log("Received PING from client:", data);
+    // console.log("Received PING from client:", data);
 
     const { roomId, name } = data;
 
@@ -131,8 +134,10 @@ socketServer.on("connection", (socket) => {
   });
 
   socket.on("CODE_CHANGED", (req) => {
-    console.log("CODE_CHANGED event called");
+    // console.log("CODE_CHANGED event called");
     const { data, roomId } = req;
+
+    if (!db[roomId]) return;
 
     db[roomId].data = data;
 
@@ -143,7 +148,7 @@ socketServer.on("connection", (socket) => {
   });
 
   socket.on("END_SESSION", ({ roomId }) => {
-    console.log("END_SESSION ", roomId);
+    // console.log("END_SESSION ", roomId);
     if (roomId) {
       delete db[roomId];
 
